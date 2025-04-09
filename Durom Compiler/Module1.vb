@@ -1,7 +1,7 @@
 ﻿Module Module1
 
     Sub Main()
-        Console.WriteLine(My.Application.CommandLineArgs.Count)
+        Dim x(1) As Integer
     End Sub
 
 End Module
