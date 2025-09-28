@@ -60,14 +60,22 @@
                 ElseIf line.StartsWith("#define") Then
                     Dim defineMacro As String = line.Replace("#define", "").Trim()
 
-                    Dim definer As String = defineMacro.Substring(0, defineMacro.IndexOf(" "))
+                    Dim index As Integer = defineMacro.IndexOf(" ")
 
-                    defineMacro = defineMacro.Replace(definer, "").Trim()
+                    If index = -1 Then
+                        definers.Add(defineMacro)
+                        definees.Add("")
+                        Console.WriteLine("Defining macro: " & defineMacro)
+                    Else
+                        Dim definer As String = defineMacro.Substring(0, defineMacro.IndexOf(" "))
 
-                    definers.Add(definer)
-                    definees.Add(defineMacro)
+                        defineMacro = defineMacro.Replace(definer, "").Trim()
 
-                    Console.WriteLine("Defining macro: " & definer & " as " & defineMacro)
+                        definers.Add(definer)
+                        definees.Add(defineMacro)
+
+                        Console.WriteLine("Defining macro: " & definer & " as " & defineMacro)
+                    End If
 
                 ElseIf line.StartsWith("//") Then
                     ' Skip comment lines
