@@ -5,6 +5,8 @@ Module PreProcessor
     Dim compilerPath As String = AppDomain.CurrentDomain.BaseDirectory()
     Dim filePath As String = IO.Directory.GetCurrentDirectory() & "\"
 
+    Dim lines As New List(Of String)
+    Dim newLines As New List(Of String)
 
     Dim definers As New List(Of String)
     Dim definees As New List(Of String)
@@ -13,26 +15,17 @@ Module PreProcessor
         preProcessIncludes(path)
         preProcessComments()
         preProcessDefines()
+        My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", String.Join(vbCrLf, lines), False)
     End Sub
 
     Sub preProcessIncludes(ByVal path As String)
         Dim preProcessLoop As Boolean = False
-        Dim round As Byte = 1
+        Dim initialRound As Boolean = True
         Do
             preProcessLoop = False
-            If (round = 0) Then
-                path = filePath + "prp.drm"
-            End If
-
-            ' Optimise this later
-            If round = 1 Then
-                round = 0
-            End If
-
-            Dim lines() As String = IO.File.ReadAllLines(path)
-
-            If (IO.File.Exists(filePath + "prp.drm")) Then
-                My.Computer.FileSystem.DeleteFile(filePath + "prp.drm")
+            If (initialRound) Then
+                lines = IO.File.ReadAllLines(path).ToList
+                initialRound = False
             End If
 
             Dim ifDefBlock As Boolean = False
@@ -52,7 +45,7 @@ Module PreProcessor
                         If line.StartsWith("#endif") Then
                             ifDefBlock = False
                         Else
-                            My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", (line + Chr(13)), True)
+                            newLines.Add(line)
                         End If
                     End If
 
@@ -62,7 +55,7 @@ Module PreProcessor
                         commentBlock = False
                         line = line.Substring(line.IndexOf("*/") + 2).Trim()
                         If line <> "" Then
-                            My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", (line + Chr(13)), True)
+                            newLines.Add(line)
                         End If
                     End If
                 Else
@@ -85,7 +78,7 @@ Module PreProcessor
                         If My.Computer.FileSystem.FileExists(includePath) Then
                             Dim includeLines() As String = IO.File.ReadAllLines(includePath)
                             For Each includeLine As String In includeLines
-                                My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", (includeLine + Chr(13)), True)
+                                newLines.Add(includeLine)
                             Next
                         Else
                             Console.WriteLine("Include file not found: " & includePath)
@@ -144,38 +137,41 @@ Module PreProcessor
                         End If
 
                         If line <> "" Then
-                            My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", (line + Chr(13)), True)
+                            newLines.Add(line)
                         End If
                     End If
                 End If
-
             Next
 
+            lines.Clear()
+            For Each line As String In newLines
+                lines.Add(line)
+            Next
+
+            newLines.Clear()
         Loop While (preProcessLoop = True)
     End Sub
 
     Sub preProcessComments()
-        Dim lines() As String = IO.File.ReadAllLines(filePath + "prp.drm")
-
-        My.Computer.FileSystem.DeleteFile(filePath + "prp.drm")
 
         For Each line As String In lines
             Dim index As Integer = line.IndexOf("//")
             If index <> -1 Then
                 line = line.Substring(0, index)
             End If
-            My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", (line + Chr(13)), True)
         Next
 
     End Sub
 
     Sub preProcessDefines()
+        Dim text As String = String.Join(vbCr, lines)
+
         For Each definer As String In definers
             ' Replace all instances of definer with definee in prp.drm
             Dim definee As String = definees(definers.IndexOf(definer))
-            Dim text As String = My.Computer.FileSystem.ReadAllText(filePath + "prp.drm")
             text = text.Replace(definer, definee)
-            My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", text, False)
         Next
+
+        lines = text.Split(vbCr).ToList()
     End Sub
 End Module

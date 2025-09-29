@@ -4,6 +4,9 @@
     Dim blockList As New List(Of String)
     Sub compile(ByVal path As String)
         breakIntoBlocks(path)
+        'compile separate blocks
+        '   handle Variables &  Constants
+        '   handle Operations
     End Sub
 
     Sub breakIntoBlocks(ByVal path As String)
@@ -29,6 +32,7 @@
             Next
             currentBlock &= vbCrLf
         Next
+        blockList.Add(currentBlock)
         Console.WriteLine()
         Console.WriteLine(currentBlock)
 
