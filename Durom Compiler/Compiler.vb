@@ -2,6 +2,9 @@
 
     Dim blockStack As Stack = New Stack()
     Dim blockList As New List(Of String)
+
+    Dim globalScope As String
+
     Sub compile(ByVal path As String)
         breakIntoBlocks(path)
         'compile separate blocks
@@ -32,15 +35,19 @@
             Next
             currentBlock &= vbCrLf
         Next
-        blockList.Add(currentBlock)
+
+        globalScope = currentBlock
+
         Console.WriteLine()
-        Console.WriteLine(currentBlock)
+        Console.WriteLine("{global}:" & vbCrLf & globalScope)
 
         Dim i As Integer = 0
         For Each blk As String In blockList
             Console.WriteLine("{" & i & "}:" & vbCrLf & blk)
             i += 1
         Next
+
+
     End Sub
 End Module
 

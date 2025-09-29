@@ -153,13 +153,19 @@ Module PreProcessor
     End Sub
 
     Sub preProcessComments()
-
+        newLines.Clear()
         For Each line As String In lines
             Dim index As Integer = line.IndexOf("//")
             If index <> -1 Then
                 line = line.Substring(0, index)
             End If
+            newLines.Add(line)
         Next
+        lines.Clear()
+        For Each line As String In newLines
+            lines.Add(line)
+        Next
+        newLines.Clear()
 
     End Sub
 
