@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Runtime.CompilerServices
 
 Module PreProcessor
 
@@ -13,8 +14,11 @@ Module PreProcessor
 
     Sub preProcess(ByVal path As String)
         preProcessIncludes(path)
+        Console.WriteLine()
         preProcessComments()
         preProcessDefines()
+        Console.WriteLine()
+        preProcessForLoopHeaderVariables()
         My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", String.Join(vbCrLf, lines), False)
     End Sub
 
@@ -180,4 +184,32 @@ Module PreProcessor
 
         lines = text.Split(vbCr).ToList()
     End Sub
+
+    Sub preProcessForLoopHeaderVariables()
+        newLines.Clear()
+
+        For Each line As String In lines
+            If line.StartsWith("for") Then
+                Dim firstSectionStart As Integer = line.IndexOf("(") + 1
+                Dim firstSectionEnd As Integer = line.IndexOf(";") + 1
+                Dim forVariableDefine As String = line.Substring(firstSectionStart, firstSectionEnd - firstSectionStart).Trim()
+                Console.WriteLine("For loop with " & forVariableDefine)
+
+                If forVariableDefine.StartsWith("int") Or forVariableDefine.StartsWith("char") Or forVariableDefine.StartsWith("short") Or forVariableDefine.StartsWith("long") Or forVariableDefine.StartsWith("float") Or forVariableDefine.StartsWith("double") Then
+                    newLines.Add(forVariableDefine)
+                    line = "for(;" & line.Substring(firstSectionEnd)
+                End If
+
+            End If
+            newLines.Add(line)
+        Next
+
+        lines.Clear()
+        For Each line As String In newLines
+            lines.Add(line)
+        Next
+        newLines.Clear()
+    End Sub
+
+
 End Module

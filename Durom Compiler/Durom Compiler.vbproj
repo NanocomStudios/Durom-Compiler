@@ -69,6 +69,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converter.vb" />
     <Compile Include="Main.vb" />
     <Compile Include="Compiler.vb" />
     <Compile Include="PreProcessor.vb" />
