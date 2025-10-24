@@ -1,5 +1,6 @@
 ﻿Imports System.IO
 Imports System.Runtime.CompilerServices
+Imports System.Text.RegularExpressions
 
 Module PreProcessor
 
@@ -18,7 +19,6 @@ Module PreProcessor
         preProcessComments()
         preProcessDefines()
         Console.WriteLine()
-        preProcessForLoopHeaderVariables()
         My.Computer.FileSystem.WriteAllText(filePath + "prp.drm", String.Join(vbCrLf, lines), False)
     End Sub
 
@@ -179,37 +179,17 @@ Module PreProcessor
         For Each definer As String In definers
             ' Replace all instances of definer with definee in prp.drm
             Dim definee As String = definees(definers.IndexOf(definer))
-            text = text.Replace(definer, definee)
+            text = replaceWord(text, definer, definee)
         Next
 
         lines = text.Split(vbCr).ToList()
     End Sub
 
-    Sub preProcessForLoopHeaderVariables()
-        newLines.Clear()
 
-        For Each line As String In lines
-            If line.StartsWith("for") Then
-                Dim firstSectionStart As Integer = line.IndexOf("(") + 1
-                Dim firstSectionEnd As Integer = line.IndexOf(";") + 1
-                Dim forVariableDefine As String = line.Substring(firstSectionStart, firstSectionEnd - firstSectionStart).Trim()
-                Console.WriteLine("For loop with " & forVariableDefine)
-
-                If forVariableDefine.StartsWith("int") Or forVariableDefine.StartsWith("char") Or forVariableDefine.StartsWith("short") Or forVariableDefine.StartsWith("long") Or forVariableDefine.StartsWith("float") Or forVariableDefine.StartsWith("double") Then
-                    newLines.Add(forVariableDefine)
-                    line = "for(;" & line.Substring(firstSectionEnd)
-                End If
-
-            End If
-            newLines.Add(line)
-        Next
-
-        lines.Clear()
-        For Each line As String In newLines
-            lines.Add(line)
-        Next
-        newLines.Clear()
-    End Sub
-
+    Function replaceWord(ByVal original As String, ByVal wordToReplace As String, ByVal replacementWord As String) As String
+        Dim pattern As String = "\b" & Regex.Escape(wordToReplace) & "\b"
+        Dim result As String = Regex.Replace(original, pattern, replacementWord)
+        Return result
+    End Function
 
 End Module
