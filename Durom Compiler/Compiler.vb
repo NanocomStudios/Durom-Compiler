@@ -26,7 +26,6 @@ Module Compiler
 
     Sub compile(ByVal path As String)
         breakIntoBlocks(path)
-        breakIntoBracketBlocks(path)
         identifyVariables()
         'compile separate blocks
         '   handle Variables &  Constants
@@ -65,40 +64,6 @@ Module Compiler
         Dim i As Integer = 0
         For Each blk As String In blockList
             Console.WriteLine("{" & i & "}:" & vbCrLf & blk)
-            i += 1
-        Next
-
-
-    End Sub
-
-    Sub breakIntoBracketBlocks(ByVal path As String)
-        Dim currentBlock As String = ""
-
-        For Each line As String In IO.File.ReadAllLines(path)
-
-            For Each ch As Char In line
-                If ch = "("c Then
-                    bracketStack.Push(currentBlock)
-                    currentBlock = ""
-                ElseIf ch = ")"c Then
-                    If bracketStack.Count > 0 Then
-                        bracketList.Add(currentBlock)
-                        currentBlock = bracketStack.Pop() & " (" & bracketList.Count - 1 & ") "
-                    Else
-                        Console.WriteLine("Unmatched closing brace ')'")
-                    End If
-                Else
-                    currentBlock &= ch
-                End If
-
-            Next
-            currentBlock &= vbCrLf
-        Next
-
-
-        Dim i As Integer = 0
-        For Each blk As String In bracketList
-            Console.WriteLine("(" & i & "):" & vbCrLf & blk)
             i += 1
         Next
 
