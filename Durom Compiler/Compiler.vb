@@ -1,4 +1,5 @@
-﻿Imports System.Text.RegularExpressions
+﻿Imports System.Runtime.CompilerServices
+Imports System.Text.RegularExpressions
 
 Module Compiler
 
@@ -22,11 +23,11 @@ Module Compiler
     Dim variableList As New List(Of Variable)
     Dim constList As New List(Of Constant)
 
-    Dim globalScope As String
+    Dim globalScope As Integer
 
     Sub compile(ByVal path As String)
         breakIntoBlocks(path)
-        identifyVariables()
+        decodeLineOperations()
         'compile separate blocks
         '   handle Variables &  Constants
         '   handle Operations
@@ -56,51 +57,59 @@ Module Compiler
             currentBlock &= vbCrLf
         Next
 
-        globalScope = currentBlock
+        globalScope = blockList.Count
+        blockList.Add(currentBlock)
 
         Console.WriteLine()
-        Console.WriteLine("{global}:" & vbCrLf & globalScope)
 
         Dim i As Integer = 0
         For Each blk As String In blockList
-            Console.WriteLine("{" & i & "}:" & vbCrLf & blk)
+            If (i = globalScope) Then
+                Console.WriteLine("{global}:" & vbCrLf & blk)
+            Else
+                Console.WriteLine("{" & i & "}:" & vbCrLf & blk)
+            End If
             i += 1
         Next
 
 
     End Sub
 
-    Sub identifyVariables()
-        Dim varPattern As String = "\b(char|int|short|long|float|double)\s+([a-zA-Z_][a-zA-Z0-9_]*(\s*=\s*[^,;]+)?(\s*,\s*[a-zA-Z_][a-zA-Z0-9_]*(\s*=\s*[^,;]+)?)*\s*);"
-        Dim varRegex As New Regex(varPattern)
+    Sub decodeLineOperations()
+
         Dim i As Integer = 0
         For Each blk As String In blockList
             Console.WriteLine()
             Console.WriteLine(i & " : ")
 
             For Each line As String In blk.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-                Dim m As Match = Regex.Match(line, varPattern)
-                If m.Success Then
-                    Dim varType As String = m.Groups(1).Value
-                    Dim varsSection As String = m.Groups(2).Value
-
-                    Dim vars() As String = varsSection.Split(","c)
-                    For Each v As String In vars
-                        Dim part As String = v.Trim()
-                        Dim name As String
-                        Dim value As String = Nothing
-
-                        If part.Contains("=") Then
-                            Dim nv() As String = part.Split("="c)
-                            name = nv(0).Trim()
-                            value = nv(1).Trim()
-                        Else
-                            name = part
-                        End If
-
-                        Console.WriteLine($"Type: {varType}, Name: {name}, Value: {If(value, "uninitialized")}")
-                    Next
+                line.TrimStart()
+                If line.StartsWith("void") Then
+                    Console.WriteLine("void")
+                ElseIf line.StartsWith("const") Then
+                    Console.WriteLine("const")
+                ElseIf line.StartsWith("char") Then
+                    Console.WriteLine("char")
+                ElseIf line.StartsWith("short") Then
+                    Console.WriteLine("short")
+                ElseIf line.StartsWith("int") Then
+                    Console.WriteLine("int")
+                ElseIf line.StartsWith("long") Then
+                    Console.WriteLine("long")
+                ElseIf line.StartsWith("float") Then
+                    Console.WriteLine("float")
+                ElseIf line.StartsWith("double") Then
+                    Console.WriteLine("double")
+                ElseIf line.StartsWith("if") Then
+                    Console.WriteLine("if")
+                ElseIf line.StartsWith("for") Then
+                    Console.WriteLine("for")
+                ElseIf line.StartsWith("while") Then
+                    Console.WriteLine("while")
+                ElseIf line.StartsWith("switch") Then
+                    Console.WriteLine("switch")
                 End If
+
             Next
             i += 1
         Next
