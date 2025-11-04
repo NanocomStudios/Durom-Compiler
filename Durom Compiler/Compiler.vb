@@ -6,31 +6,27 @@ Module Compiler
     Dim blockStack As Stack = New Stack()
     Dim blockList As New List(Of String)
 
-    Dim bracketStack As Stack = New Stack()
-    Dim bracketList As New List(Of String)
-
-    Structure Variable
-        Dim name As String
-        Dim size As Byte
+    Structure dataType
+        Dim type As String
+        Dim size As Integer
     End Structure
 
-    Structure Constant
-        Dim name As String
-        Dim size As Int16
-        Dim value As List(Of Byte)
-    End Structure
-
-    Dim variableList As New List(Of Variable)
-    Dim constList As New List(Of Constant)
+    Dim dataTypes As Dictionary(Of String, dataType) = New Dictionary(Of String, dataType) From {
+        {"void", New dataType With {.type = "void", .size = 0}},
+        {"bool", New dataType With {.type = "bool", .size = 1}},
+        {"char", New dataType With {.type = "int", .size = 1}},
+        {"short", New dataType With {.type = "int", .size = 2}},
+        {"int", New dataType With {.type = "int", .size = 4}},
+        {"long", New dataType With {.type = "int", .size = 8}},
+        {"float", New dataType With {.type = "single", .size = 4}},
+        {"double", New dataType With {.type = "double", .size = 8}}
+    }
 
     Dim globalScope As Integer
 
     Sub compile(ByVal path As String)
         breakIntoBlocks(path)
-        decodeLineOperations()
-        'compile separate blocks
-        '   handle Variables &  Constants
-        '   handle Operations
+        compileGlobalScope()
     End Sub
 
     Sub breakIntoBlocks(ByVal path As String)
@@ -75,44 +71,37 @@ Module Compiler
 
     End Sub
 
-    Sub decodeLineOperations()
+    Sub compileGlobalScope()
+        Dim state As String = "start"
+        For Each line As String In blockList(globalScope).Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+            For Each l As String In line.CompilerSplit()
+                Select Case state
+                    Case "start"
+                        Select Case l
+                            Case "struct"
+                                Console.WriteLine("struct detected")
 
-        Dim i As Integer = 0
-        For Each blk As String In blockList
-            Console.WriteLine()
-            Console.WriteLine(i & " : ")
+                            Case "class"
+                                Console.WriteLine("class detected")
 
-            For Each line As String In blk.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-                line.TrimStart()
-                If line.StartsWith("void") Then
-                    Console.WriteLine("void")
-                ElseIf line.StartsWith("const") Then
-                    Console.WriteLine("const")
-                ElseIf line.StartsWith("char") Then
-                    Console.WriteLine("char")
-                ElseIf line.StartsWith("short") Then
-                    Console.WriteLine("short")
-                ElseIf line.StartsWith("int") Then
-                    Console.WriteLine("int")
-                ElseIf line.StartsWith("long") Then
-                    Console.WriteLine("long")
-                ElseIf line.StartsWith("float") Then
-                    Console.WriteLine("float")
-                ElseIf line.StartsWith("double") Then
-                    Console.WriteLine("double")
-                ElseIf line.StartsWith("if") Then
-                    Console.WriteLine("if")
-                ElseIf line.StartsWith("for") Then
-                    Console.WriteLine("for")
-                ElseIf line.StartsWith("while") Then
-                    Console.WriteLine("while")
-                ElseIf line.StartsWith("switch") Then
-                    Console.WriteLine("switch")
-                End If
+                            Case "enum"
+                                Console.WriteLine("enum detected")
 
+                            Case "union"
+                                Console.WriteLine("union detected")
+
+                            Case Else
+                                If dataTypes.ContainsKey(l) Then
+                                    Console.WriteLine(l + " detected")
+                                Else
+                                End If
+
+
+                        End Select
+                End Select
             Next
-            i += 1
         Next
+
     End Sub
 
 End Module
@@ -124,3 +113,31 @@ End Module
 'variables
 
 'numbers
+
+Module StringExtensions
+    <Extension()>
+    Function CompilerSplit(ByVal str As String) As List(Of String)
+        Dim tokens As New List(Of String)
+        Dim tmp As String = ""
+
+        For Each c As Char In str
+            If Char.IsWhiteSpace(c) Then
+                If Not String.IsNullOrEmpty(tmp) Then
+                    tokens.Add(tmp)
+                    tmp = ""
+                End If
+            ElseIf "();,{}[]".Contains(c) Then
+                If Not String.IsNullOrEmpty(tmp) Then
+                    tokens.Add(tmp)
+                    tmp = ""
+                End If
+                tokens.Add(c)
+            Else
+                tmp &= c
+            End If
+        Next
+
+
+        Return tokens
+    End Function
+End Module
